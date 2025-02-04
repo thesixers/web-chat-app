@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import io from 'socket.io-client'
 
-// const userNo = '07043952140';
-
 // const socket = io.connect('http://localhost:3000', {query: {userNo}})
-const socket = io.connect('http://localhost:3000')
+const socket = io.connect('https://chat-app-server-nz3i.onrender.com')
 
 
 function App() {
