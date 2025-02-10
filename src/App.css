@@ -62,12 +62,19 @@
   flex-direction: column;
   gap: 10px;
   padding: 20px;
+  overflow: scroll;
 }
 .message{
   max-width: 70%;
   padding: 10px 15px;
   border-radius: 10px;
   word-wrap: break-word;
+  text-align: left;
+}
+.message div{
+  font-size: 10px;
+  font-style: italic;
+  text-align: left;
 }
 .my-message {
   align-self: flex-end;

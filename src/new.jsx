@@ -12,14 +12,12 @@ function App() {
   const [roomInput, setRoomInput] = useState('');
   const [id, setId] = useState('')
   const [isId, setIsId] = useState(false)
-  const [socketId, setSocketIsId] = useState('')
   const socket = useRef()
-
 
   const sendMessage = () => {
     const data = {message: messageInput, user: id, room: room};
     setMessages((prev) => {
-      let md = [...prev, data]
+      let md = [...prev, {message: messageInput, user: id, room: room}]
 
       localStorage.setItem('gxmessages', JSON.stringify(md))
 
@@ -30,23 +28,14 @@ function App() {
   }
 
   const joinRoom = () => {
+    // if(!isNaN(roomInput)){
       socket.current.emit('joinRoom', roomInput)
       setRoom(roomInput);
-       
+    // }
   }
 
   useEffect(() => {
     // if(!localStorage && !localStorage.getItem('gxmessages')) return;
-
-    // socket.current = io.connect('http://localhost:4000')
-    
-    if(localStorage.getItem('gxuserId')){
-      let uid = localStorage.getItem('gxuserId')
-      setId(uid)
-      socket.current = io.connect('http://localhost:4000', {query: {uid}})
-      setIsId(true)
-    }
-
 
     if(localStorage.getItem('gxmessages')){
       let ms = JSON.parse(localStorage.getItem('gxmessages'));
@@ -54,33 +43,49 @@ function App() {
       Object.values(ms).forEach(value => {
         empty.push(value);
       })
+
       setMessages((prev) =>  [...empty])
     }
-    
 
-    socket.current.on("RM", handleAddMessage);
+    if(localStorage.getItem('gxuserId')){
+      let uid = localStorage.getItem('gxuserId')
+      setId(uid)
+      socket.current = io.connect('http://localhost:3000', {query: {uid}})
+      setIsId(true)
+    }
+
+    if(socket.current){
+      socket.current.on('RM', (data) => {
+        console.log(data);
+      })
+    }
 
     return () =>{
-      socket.current.off("RM", handleAddMessage);
-      socket.current.disconnect()
+      if(socket.current){
+        socket.current.disconnect()
+      }
     }
   }, [])
 
-  const handleAddMessage = (data) => {
-    // setMessages((prev) =>  [...prev, data])
-    setMessages((prev) => {
-      let md = [...prev, data]
+const handleAddMessage = (data) => {
+  console.log(data);
+  // setMessages((prev) =>  [...prev, data])
+  setMessages((prev) => {
+    let md = [...prev, data]
 
-      localStorage.setItem('gxmessages', JSON.stringify(md))
+    localStorage.setItem('gxmessages', JSON.stringify(md))
 
-      return md
-    })
-  }
+    return md
+  })
+}
+      
 
 
-  function changeId(){
+  function addId(){
     localStorage.setItem('gxuserId', id)
+    let uid = id;
     setIsId(true)
+    socket.current = io.connect('http://localhost:3000', {query: {uid}})
   }
 
   return (
@@ -91,7 +96,7 @@ function App() {
             <div className="form">
               <h3>Set User ID or Name</h3>
               <input type="text" value={id} onInput={(e) => {setId(e.target.value)}} placeholder='Please enter a name'/>
-              <button onClick={changeId}>Set</button>
+              <button onClick={addId}>Set</button>
             </div>
           </div>
         )
@@ -102,12 +107,12 @@ function App() {
           :
         <div className="add-room-container">
         <input type="text" placeholder='Enter Room ID' onChange={(e) => {setRoomInput(e.target.value)}} />
-        <button onClick={() => {joinRoom()}}>Join</button>
+        <button onClick={joinRoom}>Join</button>
       </div>
       }
       
       <div className="message-container">
-      <div className="messages">
+        <div className="messages">
           {
             !messages || messages.length === 0 ? <div>No Messages</div> 
             : 
@@ -138,6 +143,3 @@ function App() {
 }
 
 export default App
-
-
-
